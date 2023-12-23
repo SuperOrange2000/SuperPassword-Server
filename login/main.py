@@ -46,7 +46,7 @@ def login(request:HttpRequest):
     aes_key = hashlib.sha256((u.solt + json_body["password"]).encode()).hexdigest()
     decryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).decryptor()
 
-    if padding.PKCS7(algorithms.AES.block_size).padder().finalize() == decryptor.update(u.check_code) + decryptor.finalize():
+    if '\x10'*algorithms.AES.block_size == decryptor.update(u.check_code) + decryptor.finalize():
         query_set = UserLoginToken.objects.filter(owner=u, device=json_body["device"])
         if query_set.exists():
             token = query_set.first().identification
