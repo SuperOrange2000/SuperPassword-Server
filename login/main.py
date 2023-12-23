@@ -1,5 +1,4 @@
-from django.http import JsonResponse, HttpResponse, HttpRequest, HttpResponseNotAllowed
-import secrets
+from django.http import HttpResponse, HttpRequest
 from django.views.decorators.csrf import ensure_csrf_cookie
 import json
 from .models import *
@@ -15,8 +14,9 @@ def sign_up(request:HttpRequest):
     json_body = json.loads(request.body)
 
     if User.objects.filter(username = json_body["username"]).exists():
-        return JsonResponse({
-            "status" : "failure",
+        return HttpResponse(
+            status = 409,
+            content={
             "message" : "该用户名已被注册",
         })
     
@@ -32,8 +32,9 @@ def sign_up(request:HttpRequest):
     token = UserLoginToken.objects.create(owner=u).identification
     u.save()
 
-    return JsonResponse({
-        "status" : "success",
+    return HttpResponse(
+        status=200,
+        content={
         "message" : "ok",
         "content" : token
     })
@@ -52,10 +53,16 @@ def login(request:HttpRequest):
             token = query_set.first().identification
         else:
             token = UserLoginToken.objects.create(owner=u).identification
-        return JsonResponse({
-            "status" : "success",
+        return HttpResponse(
+            status=200,
+            content={
             "message" : "ok",
             "content" : token
         })
     else:
-        return HttpResponseNotAllowed()
+        return HttpResponse(
+            status=401,
+            content={
+                "message" : "密码错误"
+            }
+        )
