@@ -4,6 +4,9 @@ from utils.storage import HashStorage
 from django.utils import timezone
 from functools import partial
 import os
+from core.exceptions import TokenTimeoutError
+from datetime import datetime
+from typing import ClassVar
 
 class User(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -16,7 +19,21 @@ class User(models.Model):
     update_time = models.DateTimeField(auto_now=True)
     create_time = models.DateTimeField(auto_now_add=True, editable=False)
 
+class TokenManager(models.Manager):
+    timeout = 300
+    def get(self, *args, **kwargs):
+        token = super().get(*args, **kwargs)
+        if datetime.now() - token.active_time > self.timeout:
+            raise TokenTimeoutError
+        else:
+            token.active_time = datetime.now()
+            token.save()
+        return token
+
 class UserLoginToken(models.Model):
+    objects = TokenManager()
+    TokenTimeoutError: ClassVar[type[TokenTimeoutError]]
+
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     device = models.CharField(max_length=10, default="windows")
     identification = models.CharField(max_length=64, default=partial(random_string_func, 64))
