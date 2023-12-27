@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 import json
 from .models import *
@@ -11,58 +11,66 @@ def get_csrf_token(request):
     return HttpResponse()
 
 def sign_up(request:HttpRequest):
-    json_body = json.loads(request.body)
-
-    if User.objects.filter(username = json_body["username"]).exists():
-        return HttpResponse(
+    if User.objects.filter(username = request.POST["username"]).exists():
+        return JsonResponse(
             status = 409,
-            content={
+            data={
             "message" : "该用户名已被注册",
         })
     
     u = User.objects.create(
-        username = json_body["username"],
+        username = request.POST["username"],
     )
-    aes_key = hashlib.sha256((u.solt + json_body["password"]).encode()).hexdigest()
+    aes_key = hashlib.sha256((u.solt + request.POST["password"]).encode()).digest()
+    print(aes_key)
     encryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).encryptor()
     u.check_code = encryptor.update(b'\x10'*algorithms.AES.block_size)+encryptor.finalize()
-    if "nickname" in json_body.keys():
-        u.nickname = json_body["nickname"]
+    if "nickname" in request.POST.keys():
+        u.nickname = request.POST["nickname"]
 
     token = UserLoginToken.objects.create(owner=u).identification
     u.save()
 
-    return HttpResponse(
-        status=200,
-        content={
+    return JsonResponse(
+        status=201,
+        data={
         "message" : "ok",
         "content" : token
     })
 
 def login(request:HttpRequest):
-    json_body = json.loads(request.body)
+    if not User.objects.filter(username = request.POST["username"]).exists():
+        return JsonResponse(
+            status = 404,
+            data={
+            "message" : "用户未注册",
+        })
     u = User.objects.get(
-        username = json_body["username"]
+        username = request.POST["username"]
     )
-    aes_key = hashlib.sha256((u.solt + json_body["password"]).encode()).hexdigest()
+    aes_key = hashlib.sha256((u.solt + request.POST["password"]).encode()).digest()
     decryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).decryptor()
 
-    if '\x10'*algorithms.AES.block_size == decryptor.update(u.check_code) + decryptor.finalize():
-        query_set = UserLoginToken.objects.filter(owner=u, device=json_body["device"])
+    if b'\x10'*algorithms.AES.block_size == decryptor.update(u.check_code) + decryptor.finalize():
+        query_set = UserLoginToken.objects.filter(owner=u, device=request.POST["device"])
         if query_set.exists():
             token = query_set.first().identification
         else:
             token = UserLoginToken.objects.create(owner=u).identification
-        return HttpResponse(
+        return JsonResponse(
             status=200,
-            content={
+            data={
             "message" : "ok",
             "content" : token
         })
     else:
-        return HttpResponse(
+        return JsonResponse(
             status=401,
-            content={
+            data={
                 "message" : "密码错误"
             }
         )
+    
+
+def update_profile_pic(request:HttpRequest):
+    return HttpResponse(status=404)
