@@ -14,7 +14,7 @@ def require_http_methods(methods):
         return wrapper
     return decorator
 
-def check_keys(func):
+def handle_exceptions(func):
     @wraps(func)
     def wrapper(request:HttpRequest):
         try:
@@ -23,5 +23,11 @@ def check_keys(func):
             return JsonResponse(
                 status=422,
                 data={"message":f"缺少参数{e}"}
+            )
+        except Exception as e:
+            print(f"Exception {e} occurred in {func.__name__}")
+            return JsonResponse(
+                status=500,
+                data={"message":"服务器未知错误"}
             )
     return wrapper

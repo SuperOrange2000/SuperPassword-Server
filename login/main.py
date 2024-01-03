@@ -1,15 +1,16 @@
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
-import json
 from .models import *
 import hashlib
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
+from core.decorators import require_http_methods, handle_exceptions
 
 @ensure_csrf_cookie
 def get_csrf_token(request):
     return HttpResponse()
 
+@require_http_methods(["POST"])
+@handle_exceptions
 def sign_up(request:HttpRequest):
     if User.objects.filter(username = request.POST["username"]).exists():
         return JsonResponse(
@@ -38,6 +39,8 @@ def sign_up(request:HttpRequest):
         "content" : token
     })
 
+@require_http_methods(["POST"])
+@handle_exceptions
 def login(request:HttpRequest):
     if not User.objects.filter(username = request.POST["username"]).exists():
         return JsonResponse(
@@ -68,9 +71,8 @@ def login(request:HttpRequest):
             status=401,
             data={
                 "message" : "密码错误"
-            }
-        )
-    
+        })
+
 
 def update_profile_pic(request:HttpRequest):
     return HttpResponse(status=404)

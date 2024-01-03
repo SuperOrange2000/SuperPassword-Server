@@ -2,7 +2,7 @@ from django.http import JsonResponse, HttpRequest
 from .models import InfoGroup
 from login.models import User, UserLoginToken
 from django.db.models import Q
-from core.decorators import require_http_methods, check_keys
+from core.decorators import require_http_methods, handle_exceptions
 
 def get_token(identification):
     try:
@@ -21,7 +21,7 @@ def get_token(identification):
         return token
 
 @require_http_methods(["POST"])
-@check_keys
+@handle_exceptions
 def add(request:HttpRequest):
     token = get_token(request.POST["token"])
     if isinstance(token, dict):
@@ -40,7 +40,7 @@ def add(request:HttpRequest):
         data={"message" : "ok"})
 
 @require_http_methods(["POST"])
-@check_keys
+@handle_exceptions
 def update(request:HttpRequest):
     token = get_token(request.POST["token"])
     if isinstance(token, dict):
@@ -65,7 +65,7 @@ def update(request:HttpRequest):
     )
 
 @require_http_methods(["POST"])
-@check_keys
+@handle_exceptions
 def delete(request:HttpRequest):
     token = get_token(request.POST["token"])
     if isinstance(token, dict):
@@ -84,7 +84,7 @@ def delete(request:HttpRequest):
     )
 
 @require_http_methods(["GET"])
-@check_keys
+@handle_exceptions
 def basic_get(request:HttpRequest):
     token = get_token(request.GET["token"])
     if isinstance(token, dict):
@@ -101,16 +101,15 @@ def basic_get(request:HttpRequest):
         status=200,
         data={
             "message" : "ok",
-            "content" : [
-                {
-                    "id" : x.sub_id,
-                    "site" : x.site,
-                    "tags" : x.tags,
-                } for x in info_groups
-    ]})
+            "content" : [{
+                "id" : x.sub_id,
+                "site" : x.site,
+                "tags" : x.tags,
+            } for x in info_groups ]
+    })
 
 @require_http_methods(["GET"])
-@check_keys
+@handle_exceptions
 def detailed_get(request:HttpRequest):
     token = get_token(request.GET["token"])
     if isinstance(token, dict):
