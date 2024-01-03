@@ -1,7 +1,8 @@
 from functools import wraps
 from django.http import HttpRequest, JsonResponse
+from typing import List, Literal
 
-def require_http_methods(methods):
+def require_http_methods(methods:List[Literal["GET", "POST", "PUT", "DELETE"]]):
     def decorator(func):
         @wraps(func)
         def wrapper(request:HttpRequest):
