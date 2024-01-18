@@ -3,29 +3,17 @@ from .models import InfoGroup
 from login.models import User, UserLoginToken
 from django.db.models import Q
 from core.decorators import require_http_methods, handle_exceptions
-
-def get_token(identification):
-    try:
-        token = UserLoginToken.objects.get(identification=identification)
-    except UserLoginToken.DoesNotExist:
-        return dict(
-            status=401,
-            data={"message" : "未知token"}
-        )
-    except UserLoginToken.TokenTimeoutError:
-        return dict(
-            status=401,
-            data={"message" : "会话过期"}
-        )
-    finally:
-        return token
+from django.views.decorators.csrf import csrf_exempt
 
 @require_http_methods(["POST"])
 @handle_exceptions
 def add(request:HttpRequest):
-    token = get_token(request.POST["token"])
-    if isinstance(token, dict):
-        return JsonResponse(**token)
+    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    if not is_success:
+        return JsonResponse(
+            status=401,
+            data={"message" : "会话过期"}
+        )
 
     InfoGroup.objects.create(
         sub_id = request.POST["id"],
@@ -42,9 +30,12 @@ def add(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def update(request:HttpRequest):
-    token = get_token(request.POST["token"])
-    if isinstance(token, dict):
-        return JsonResponse(**token)
+    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    if not is_success:
+        return JsonResponse(
+            status=401,
+            data={"message" : "会话过期"}
+        )
 
     info_group = InfoGroup.objects.get(
         sub_id = request.POST["id"],
@@ -67,14 +58,20 @@ def update(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def delete(request:HttpRequest):
-    token = get_token(request.POST["token"])
-    if isinstance(token, dict):
-        return JsonResponse(**token)
+    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    if not is_success:
+        return JsonResponse(
+            status=401,
+            data={"message" : "会话过期"}
+        )
     
     query = Q()
     if "ids" in request.POST:
-        for i in request.POST["ids"]:
-            query |= Q(sub_id=i)
+        if isinstance(request.POST["ids"], str):
+            query |= Q(sub_id=request.POST["ids"])
+        else:
+            for i in request.POST["ids"]:
+                query |= Q(sub_id=i)
     InfoGroup.objects.filter(
         owner = token.owner,
     ).filter(query).delete()
@@ -83,16 +80,19 @@ def delete(request:HttpRequest):
         data={"message" : "ok",}
     )
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 @handle_exceptions
 def basic_get(request:HttpRequest):
-    token = get_token(request.GET["token"])
-    if isinstance(token, dict):
-        return JsonResponse(**token)
+    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    if not is_success:
+        return JsonResponse(
+            status=401,
+            data={"message" : "会话过期"}
+        )
 
     query = Q()
-    if "ids" in request.GET:
-        for i in request.GET["ids"]:
+    if "ids" in request.POST:
+        for i in request.POST["ids"]:
             query |= Q(sub_id=i)
     info_groups = InfoGroup.objects.filter(
         owner = token.owner,
@@ -108,14 +108,17 @@ def basic_get(request:HttpRequest):
             } for x in info_groups ]
     })
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 @handle_exceptions
 def detailed_get(request:HttpRequest):
-    token = get_token(request.GET["token"])
-    if isinstance(token, dict):
-        return JsonResponse(**token)
+    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    if not is_success:
+        return JsonResponse(
+            status=401,
+            data={"message" : "会话过期"}
+        )
 
-    info_group = InfoGroup.objects.filter(owner = token.owner).get(id=request.GET["id"])
+    info_group = InfoGroup.objects.filter(owner = token.owner).get(id=request.POST["id"])
     return JsonResponse(
         status=200,
         data={
@@ -127,3 +130,11 @@ def detailed_get(request:HttpRequest):
                 "site" : info_group.site,
                 "tags" : info_group.tags,
     }})
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def update_profile(request:HttpRequest):
+    pic = request.POST["pic"]
+    print(pic)
+    print(type(pic))
+    return JsonResponse(status=200, data={"message":"success"})

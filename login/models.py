@@ -5,8 +5,8 @@ from django.utils import timezone
 from functools import partial
 import os
 from core.exceptions import TokenTimeoutError
-from datetime import datetime
-from typing import ClassVar
+from datetime import datetime, timedelta
+from typing import Any, ClassVar
 
 class User(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -23,12 +23,18 @@ class TokenManager(models.Manager):
     timeout = 300
     def get(self, *args, **kwargs):
         token = super().get(*args, **kwargs)
-        if datetime.now() - token.active_time > self.timeout:
-            raise TokenTimeoutError
-        else:
-            token.active_time = datetime.now()
+        if self.check_timeout(token):
+            token.active_time = datetime.now(token.active_time.tzinfo)
             token.save()
-        return token
+            return True, token
+        else:
+            return False, None
+
+    def check_timeout(self, token) -> list[Any]:
+        if datetime.now(token.active_time.tzinfo) - token.active_time > timedelta(seconds=self.timeout):
+            return False
+        else:
+            return True
 
 class UserLoginToken(models.Model):
     objects = TokenManager()
