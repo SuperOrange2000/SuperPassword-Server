@@ -82,7 +82,7 @@ def delete(request:HttpRequest):
 
 @require_http_methods(["POST"])
 @handle_exceptions
-def basic_get(request:HttpRequest):
+def quick_get(request:HttpRequest):
     is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(
@@ -110,7 +110,7 @@ def basic_get(request:HttpRequest):
 
 @require_http_methods(["POST"])
 @handle_exceptions
-def detailed_get(request:HttpRequest):
+def get(request:HttpRequest):
     is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(

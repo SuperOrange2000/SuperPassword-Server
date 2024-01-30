@@ -6,6 +6,7 @@ urlpatterns = [
     path("add", main.add),
     path("update", main.update),
     path("delete", main.delete),
-    path("basic-get", main.basic_get),
-    path("detailed-get", main.detailed_get),
+    path("quick-get-data", main.quick_get),
+    path("get-data", main.get),
+    path("update-profile", main.update_profile)
 ]
