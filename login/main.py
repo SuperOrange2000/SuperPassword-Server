@@ -29,7 +29,7 @@ def sign_up(request:HttpRequest):
     if "nickname" in request.POST.keys():
         u.nickname = request.POST["nickname"]
 
-    token = UserLoginToken.objects.create(owner=u).identification
+    token = AccessToken.objects.create(owner=u).identification
     u.save()
 
     return JsonResponse(
@@ -55,11 +55,15 @@ def login(request:HttpRequest):
     decryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).decryptor()
 
     if b'\x10'*algorithms.AES.block_size == decryptor.update(u.check_code) + decryptor.finalize():
-        query_set = UserLoginToken.objects.filter(owner=u, device=request.POST["device"])
+        query_set = AccessToken.objects.filter(owner=u, device=request.POST["device"])
         if query_set.exists():
             token = query_set.first().identification
+            try:
+                AccessToken.objects.check_timeout(query_set.first())
+            except TokenTimeoutError:
+                token = AccessToken.objects.create(owner=u).identification
         else:
-            token = UserLoginToken.objects.create(owner=u).identification
+            token = AccessToken.objects.create(owner=u).identification
         return JsonResponse(
             status=200,
             data={
@@ -72,7 +76,3 @@ def login(request:HttpRequest):
             data={
                 "message" : "密码错误"
         })
-
-
-def update_profile_pic(request:HttpRequest):
-    return HttpResponse(status=404)

@@ -36,7 +36,7 @@ class TokenManager(models.Manager):
         else:
             return True
 
-class UserLoginToken(models.Model):
+class AccessToken(models.Model):
     objects = TokenManager()
     TokenTimeoutError: ClassVar[type[TokenTimeoutError]]
 

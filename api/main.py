@@ -1,6 +1,6 @@
 from django.http import JsonResponse, HttpRequest
 from .models import InfoGroup
-from login.models import User, UserLoginToken
+from login.models import User, AccessToken
 from django.db.models import Q
 from core.decorators import require_http_methods, handle_exceptions
 from django.views.decorators.csrf import csrf_exempt
@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 @require_http_methods(["POST"])
 @handle_exceptions
 def add(request:HttpRequest):
-    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
@@ -30,7 +30,7 @@ def add(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def update(request:HttpRequest):
-    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
@@ -58,7 +58,7 @@ def update(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def delete(request:HttpRequest):
-    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
@@ -83,7 +83,7 @@ def delete(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def basic_get(request:HttpRequest):
-    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
@@ -111,7 +111,7 @@ def basic_get(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def detailed_get(request:HttpRequest):
-    is_success, token = UserLoginToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
