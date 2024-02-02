@@ -23,7 +23,6 @@ def sign_up(request:HttpRequest):
         username = request.POST["username"],
     )
     aes_key = hashlib.sha256((u.solt + request.POST["password"]).encode()).digest()
-    print(aes_key)
     encryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).encryptor()
     u.check_code = encryptor.update(b'\x10'*algorithms.AES.block_size)+encryptor.finalize()
     if "nickname" in request.POST.keys():
@@ -56,19 +55,15 @@ def login(request:HttpRequest):
 
     if b'\x10'*algorithms.AES.block_size == decryptor.update(u.check_code) + decryptor.finalize():
         query_set = AccessToken.objects.filter(owner=u, device=request.POST["device"])
-        if query_set.exists():
-            token = query_set.first().identification
-            try:
-                AccessToken.objects.check_timeout(query_set.first())
-            except TokenTimeoutError:
-                token = AccessToken.objects.create(owner=u).identification
+        if query_set.exists() and AccessToken.objects.check_timeout(query_set.first()):
+            identification_code = query_set.first().identification
         else:
-            token = AccessToken.objects.create(owner=u).identification
+            identification_code = AccessToken.objects.create(owner=u).identification
         return JsonResponse(
             status=200,
             data={
             "message" : "ok",
-            "content" : token
+            "content" : identification_code
         })
     else:
         return JsonResponse(
