@@ -1,28 +1,37 @@
 from django.http import JsonResponse, HttpRequest
-from .models import InfoGroup
+from .models import InfoGroup, UserEntityRelation
 from login.models import User, AccessToken
 from django.db.models import Q
 from core.decorators import require_http_methods, handle_exceptions
 from django.views.decorators.csrf import csrf_exempt
 
+import base64
+
 @require_http_methods(["POST"])
 @handle_exceptions
 def add(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
             data={"message" : "会话过期"}
         )
 
-    InfoGroup.objects.create(
-        sub_id = request.POST["id"],
-        user_name = request.POST["username"],
-        password = request.POST["password"],
-        tags = request.POST["tags"],
-        site = request.POST["site"],
+    info_group = InfoGroup.objects.create(
+        username = base64.b64decode(request.POST["username"]),
+        password = base64.b64decode(request.POST["password"]),
+        site = base64.b64decode(request.POST["site"]),
+        tags = base64.b64decode(request.POST["tags"]),
+        # extra_info = base64.b64decode(request.POST["extra_info"]),
+        salt = base64.b64decode(request.POST["salt"]),
+    )
+
+    UserEntityRelation.objects.create(
+        info_id = request.POST["id"],
+        info_group = info_group,
         owner = token.owner,
     )
+    
     return JsonResponse(
         status=201,
         data={"message" : "ok"})
@@ -30,26 +39,24 @@ def add(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def update(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
             data={"message" : "会话过期"}
         )
 
-    info_group = InfoGroup.objects.get(
-        sub_id = request.POST["id"],
+    info_group = UserEntityRelation.objects.get(
+        info_id = request.POST["id"],
         owner = token.owner,
-    )
-    if "site" in request.POST.keys():
-        info_group.site=request.POST["site"]
-    if "username" in request.POST.keys():
-        info_group.user_name=request.POST["username"]
-    if "password" in request.POST.keys():
-        info_group.password=request.POST["password"]
-    if "tags" in request.POST.keys():
-        info_group.tags=request.POST["tags"]
+    ).info_group
+    
+    info_group.username = base64.b64decode(request.POST["username"])
+    info_group.password = base64.b64decode(request.POST["password"])
+    info_group.site = base64.b64decode(request.POST["site"])
+    info_group.tags = base64.b64decode(request.POST["tags"])
     info_group.save()
+
     return JsonResponse(
         status=204,
         data={"message" : "ok"}
@@ -58,7 +65,7 @@ def update(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def delete(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(request.POST["token"])
+    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
@@ -68,13 +75,20 @@ def delete(request:HttpRequest):
     query = Q()
     if "ids" in request.POST:
         if isinstance(request.POST["ids"], str):
-            query |= Q(sub_id=request.POST["ids"])
+            query |= Q(info_id=request.POST["ids"])
         else:
             for i in request.POST["ids"]:
-                query |= Q(sub_id=i)
-    InfoGroup.objects.filter(
+                query |= Q(info_id=i)
+
+    info_group_ids = UserEntityRelation.objects.filter(
         owner = token.owner,
-    ).filter(query).delete()
+    ).filter(query).values_list("info_group", flat=True)
+
+    query = Q()
+    for i in info_group_ids:
+        query |= Q(id=i)
+    InfoGroup.objects.filter(query).delete()
+
     return JsonResponse(
         status=204,
         data={"message" : "ok",}
@@ -82,8 +96,8 @@ def delete(request:HttpRequest):
 
 @require_http_methods(["POST"])
 @handle_exceptions
-def quick_get(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(request.POST["token"])
+def get(request:HttpRequest):
+    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
     if not is_success:
         return JsonResponse(
             status=401,
@@ -93,8 +107,8 @@ def quick_get(request:HttpRequest):
     query = Q()
     if "ids" in request.POST:
         for i in request.POST["ids"]:
-            query |= Q(sub_id=i)
-    info_groups = InfoGroup.objects.filter(
+            query |= Q(info_id=i)
+    info_group_relations = UserEntityRelation.objects.filter(
         owner = token.owner,
     ).filter(query)
     return JsonResponse(
@@ -102,34 +116,16 @@ def quick_get(request:HttpRequest):
         data={
             "message" : "ok",
             "content" : [{
-                "id" : x.sub_id,
-                "site" : x.site,
-                "tags" : x.tags,
-            } for x in info_groups ]
+                "id" : x.info_id,
+                "username" : base64.b64encode(x.info_group.username).decode(),
+                "password" : base64.b64encode(x.info_group.password).decode(),
+                "site" : base64.b64encode(x.info_group.site).decode(),
+                "tags" : base64.b64encode(x.info_group.tags).decode(),
+                "salt" : base64.b64encode(x.info_group.salt).decode(),
+                "update-time" : x.info_group.update_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "create-time" : x.info_group.create_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            } for x in info_group_relations ]
     })
-
-@require_http_methods(["POST"])
-@handle_exceptions
-def get(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(request.POST["token"])
-    if not is_success:
-        return JsonResponse(
-            status=401,
-            data={"message" : "会话过期"}
-        )
-
-    info_group = InfoGroup.objects.filter(owner = token.owner).get(id=request.POST["id"])
-    return JsonResponse(
-        status=200,
-        data={
-            "message" : "ok",
-            "content" : {
-                "id" : info_group.sub_id,
-                "username" : info_group.user_name,
-                "password" : info_group.password,
-                "site" : info_group.site,
-                "tags" : info_group.tags,
-    }})
 
 @require_http_methods(["POST"])
 @csrf_exempt

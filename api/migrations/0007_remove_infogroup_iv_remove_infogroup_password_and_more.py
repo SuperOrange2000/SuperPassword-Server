@@ -12,6 +12,30 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='infogroup',
+            name='iv',
+        ),
+        migrations.RemoveField(
+            model_name='infogroup',
+            name='password',
+        ),
+        migrations.RemoveField(
+            model_name='infogroup',
+            name='site',
+        ),
+        migrations.RemoveField(
+            model_name='infogroup',
+            name='sub_id',
+        ),
+        migrations.RemoveField(
+            model_name='infogroup',
+            name='tags',
+        ),
+        migrations.RemoveField(
+            model_name='infogroup',
+            name='user_name',
+        ),
         migrations.AddField(
             model_name='infogroup',
             name='data',
