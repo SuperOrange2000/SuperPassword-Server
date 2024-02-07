@@ -15,6 +15,6 @@ class InfoGroup(models.Model):
     create_time = models.DateField(auto_now_add=True)
 
 class UserEntityRelation(models.Model):
-    info_id = models.BigIntegerField(primary_key=False)
+    personal_info_id = models.BigIntegerField()
     info_group = models.ForeignKey(to=InfoGroup, on_delete=models.CASCADE)
     owner = models.ForeignKey(to="login.User", on_delete=models.CASCADE)

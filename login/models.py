@@ -14,7 +14,7 @@ class User(models.Model):
     username = models.CharField(max_length=32, default=partial(random_string_func, 8))
     check_code = models.BinaryField(max_length=128)
     iv = models.BinaryField(max_length=16, default=partial(os.urandom, 16))
-    solt = models.CharField(max_length=64, default=random_string_func)
+    salt = models.CharField(max_length=64, default=random_string_func)
     profile_pic = models.ImageField(upload_to="profile_pic", storage=HashStorage(), default="profile_pic/default.png")
     update_time = models.DateTimeField(auto_now=True)
     create_time = models.DateTimeField(auto_now_add=True, editable=False)
