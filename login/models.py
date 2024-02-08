@@ -26,12 +26,13 @@ class TokenManager(models.Manager):
         if self.check_timeout(token):
             token.active_time = datetime.now(token.active_time.tzinfo)
             token.save()
-            return True, token
+            return token
         else:
-            return False, None
+            return None
 
-    def check_timeout(self, token) -> list[Any]:
+    def check_timeout(self, token:models.Model) -> list[Any]:
         if datetime.now(token.active_time.tzinfo) - token.active_time > timedelta(seconds=self.timeout):
+            token.delete()
             return False
         else:
             return True

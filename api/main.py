@@ -10,8 +10,8 @@ import base64
 @require_http_methods(["POST"])
 @handle_exceptions
 def add(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
-    if not is_success:
+    token = AccessToken.objects.get(identification=request.POST["token"])
+    if token is None:
         return JsonResponse(
             status=401,
             data={"message" : "会话过期"}
@@ -39,8 +39,8 @@ def add(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def update(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
-    if not is_success:
+    token = AccessToken.objects.get(identification=request.POST["token"])
+    if token is None:
         return JsonResponse(
             status=401,
             data={"message" : "会话过期"}
@@ -65,8 +65,8 @@ def update(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def delete(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
-    if not is_success:
+    token = AccessToken.objects.get(identification=request.POST["token"])
+    if token is None:
         return JsonResponse(
             status=401,
             data={"message" : "会话过期"}
@@ -97,8 +97,8 @@ def delete(request:HttpRequest):
 @require_http_methods(["POST"])
 @handle_exceptions
 def get(request:HttpRequest):
-    is_success, token = AccessToken.objects.get(identification=request.POST["token"])
-    if not is_success:
+    token = AccessToken.objects.get(identification=request.POST["token"])
+    if token is None:
         return JsonResponse(
             status=401,
             data={"message" : "会话过期"}
