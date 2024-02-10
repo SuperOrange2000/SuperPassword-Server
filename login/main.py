@@ -22,7 +22,7 @@ def sign_up(request:HttpRequest):
     u = User.objects.create(
         username = request.POST["username"],
     )
-    aes_key = hashlib.sha256((u.solt + request.POST["password"]).encode()).digest()
+    aes_key = hashlib.sha256((u.salt + request.POST["password"]).encode()).digest()
     encryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).encryptor()
     u.check_code = encryptor.update(b'\x10'*algorithms.AES.block_size)+encryptor.finalize()
     if "nickname" in request.POST.keys():
@@ -50,7 +50,7 @@ def login(request:HttpRequest):
     u = User.objects.get(
         username = request.POST["username"]
     )
-    aes_key = hashlib.sha256((u.solt + request.POST["password"]).encode()).digest()
+    aes_key = hashlib.sha256((u.salt + request.POST["password"]).encode()).digest()
     decryptor = Cipher(algorithms.AES(aes_key), modes.CBC(u.iv)).decryptor()
 
     if b'\x10'*algorithms.AES.block_size == decryptor.update(u.check_code) + decryptor.finalize():

@@ -27,7 +27,7 @@ def add(request:HttpRequest):
     )
 
     UserEntityRelation.objects.create(
-        info_id = request.POST["id"],
+        personal_info_id = request.POST["id"],
         info_group = info_group,
         owner = token.owner,
     )
@@ -47,7 +47,7 @@ def update(request:HttpRequest):
         )
 
     info_group = UserEntityRelation.objects.get(
-        info_id = request.POST["id"],
+        personal_info_id = request.POST["id"],
         owner = token.owner,
     ).info_group
     
@@ -75,10 +75,10 @@ def delete(request:HttpRequest):
     query = Q()
     if "ids" in request.POST:
         if isinstance(request.POST["ids"], str):
-            query |= Q(info_id=request.POST["ids"])
+            query |= Q(personal_info_id=request.POST["ids"])
         else:
             for i in request.POST["ids"]:
-                query |= Q(info_id=i)
+                query |= Q(personal_info_id=i)
 
     info_group_ids = UserEntityRelation.objects.filter(
         owner = token.owner,
@@ -107,7 +107,7 @@ def get(request:HttpRequest):
     query = Q()
     if "ids" in request.POST:
         for i in request.POST["ids"]:
-            query |= Q(info_id=i)
+            query |= Q(personal_info_id=i)
     info_group_relations = UserEntityRelation.objects.filter(
         owner = token.owner,
     ).filter(query)
@@ -116,7 +116,7 @@ def get(request:HttpRequest):
         data={
             "message" : "ok",
             "content" : [{
-                "id" : x.info_id,
+                "id" : x.personal_info_id,
                 "username" : base64.b64encode(x.info_group.username).decode(),
                 "password" : base64.b64encode(x.info_group.password).decode(),
                 "site" : base64.b64encode(x.info_group.site).decode(),
