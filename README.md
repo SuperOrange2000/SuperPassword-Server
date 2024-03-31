@@ -1,6 +1,6 @@
 # SuperPassword-Server
 
-这里是SuperPassword的服务端实现。
+这里是[SuperPassword](https://github.com/SuperOrange2000/SuperPassword)的服务端实现。
 
 <!-- more -->
 
