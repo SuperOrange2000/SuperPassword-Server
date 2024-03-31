@@ -8,7 +8,7 @@ class InfoGroup(models.Model):
     username = models.BinaryField(max_length=64)
     password = models.BinaryField(max_length=64)
     site = models.BinaryField(max_length=64)
-    tags = models.BinaryField(max_length=1024)
+    tags = models.JSONField(max_length=1024)
     extra_info = models.BinaryField(max_length=2048)
     salt = models.BinaryField(max_length=32, default=partial(os.urandom, 32))
     update_time = models.DateField(auto_now=True)

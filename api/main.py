@@ -21,7 +21,7 @@ def add(request:HttpRequest):
         username = base64.b64decode(request.POST["username"]),
         password = base64.b64decode(request.POST["password"]),
         site = base64.b64decode(request.POST["site"]),
-        tags = base64.b64decode(request.POST["tags"]),
+        tags = request.POST.getlist("tags"),
         # extra_info = base64.b64decode(request.POST["extra_info"]),
         salt = base64.b64decode(request.POST["salt"]),
     )
@@ -54,7 +54,7 @@ def update(request:HttpRequest):
     info_group.username = base64.b64decode(request.POST["username"])
     info_group.password = base64.b64decode(request.POST["password"])
     info_group.site = base64.b64decode(request.POST["site"])
-    info_group.tags = base64.b64decode(request.POST["tags"])
+    info_group.tags = request.POST.getlist("tags")
     info_group.save()
 
     return JsonResponse(
@@ -120,7 +120,7 @@ def get(request:HttpRequest):
                 "username" : base64.b64encode(x.info_group.username).decode(),
                 "password" : base64.b64encode(x.info_group.password).decode(),
                 "site" : base64.b64encode(x.info_group.site).decode(),
-                "tags" : base64.b64encode(x.info_group.tags).decode(),
+                "tags" : x.info_group.tags,
                 "salt" : base64.b64encode(x.info_group.salt).decode(),
                 "update-time" : x.info_group.update_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "create-time" : x.info_group.create_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
