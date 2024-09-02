@@ -1,4 +1,4 @@
-package com.superpassword.api.converters;
+package com.superpassword.api.converter;
 
 import com.superpassword.api.dao.User;
 import com.superpassword.api.dto.UserDTO;

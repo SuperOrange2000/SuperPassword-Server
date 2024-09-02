@@ -1,15 +1,14 @@
 package com.superpassword.api.controller;
 
-import com.superpassword.api.exceptions.AccountConflictException;
-import com.superpassword.api.exceptions.AccountOrPasswordException;
-import com.superpassword.api.exceptions.ArgumentNullException;
+import com.superpassword.api.exception.AccountConflictException;
+import com.superpassword.api.exception.AccountOrPasswordException;
+import com.superpassword.api.exception.ArgumentNullException;
 import com.superpassword.api.vo.ErrorCode;
 import com.superpassword.api.vo.Response;
 import com.superpassword.api.dto.UserDTO;
 import com.superpassword.api.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 

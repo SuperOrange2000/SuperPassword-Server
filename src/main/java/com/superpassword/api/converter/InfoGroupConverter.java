@@ -1,4 +1,4 @@
-package com.superpassword.api.converters;
+package com.superpassword.api.converter;
 
 import com.superpassword.api.dao.InfoGroup;
 import com.superpassword.api.dto.InfoGroupDTO;

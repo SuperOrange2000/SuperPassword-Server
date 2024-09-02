@@ -1,4 +1,4 @@
-package com.superpassword.api.exceptions;
+package com.superpassword.api.exception;
 
 public class AccountOrPasswordException extends LoginException {
     public AccountOrPasswordException() {

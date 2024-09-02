@@ -1,11 +1,11 @@
 package com.superpassword.api.service;
 
-import com.superpassword.api.converters.InfoGroupConverter;
+import com.superpassword.api.converter.InfoGroupConverter;
 import com.superpassword.api.dao.InfoGroup;
 import com.superpassword.api.dao.InfoGroupRepository;
 import com.superpassword.api.dao.User;
 import com.superpassword.api.dto.InfoGroupDTO;
-import com.superpassword.api.exceptions.DataNotFoundException;
+import com.superpassword.api.exception.DataNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +37,7 @@ public class DataServiceImpl implements DataService {
 
         InfoGroup infoGroup = InfoGroupConverter.convert(infoGroupDTO);
         infoGroup.setOwnerId(owner.getId());
-        
+
         infoGroupRepository.save(infoGroup);
         return infoGroup.getId();
     }

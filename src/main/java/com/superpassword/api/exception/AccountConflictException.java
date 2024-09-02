@@ -1,4 +1,4 @@
-package com.superpassword.api.exceptions;
+package com.superpassword.api.exception;
 
 public class AccountConflictException extends LoginException {
     public AccountConflictException() {

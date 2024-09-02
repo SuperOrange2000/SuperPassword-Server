@@ -1,4 +1,4 @@
-package com.superpassword.api.exceptions;
+package com.superpassword.api.exception;
 
 public class ArgumentNullException extends LoginException {
     public ArgumentNullException() {
