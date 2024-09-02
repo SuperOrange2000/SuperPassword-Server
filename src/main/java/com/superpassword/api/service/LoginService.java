@@ -4,9 +4,9 @@ import com.superpassword.api.dao.User;
 import com.superpassword.api.dto.UserDTO;
 
 public interface LoginService {
-    public String signUp(UserDTO user);
+    String signUp(UserDTO user);
 
-    public String login(UserDTO user);
+    String login(UserDTO user);
 
-    public User getUserInfoByToken(String token);
+    User getUserInfoByToken(String token);
 }
