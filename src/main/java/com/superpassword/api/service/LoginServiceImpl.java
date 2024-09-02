@@ -1,6 +1,5 @@
 package com.superpassword.api.service;
 
-import com.alibaba.fastjson.JSON;
 import com.superpassword.api.converter.UserConverter;
 import com.superpassword.api.dao.User;
 import com.superpassword.api.dao.UserRepository;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class LoginServiceImpl implements LoginService {
@@ -79,7 +77,7 @@ public class LoginServiceImpl implements LoginService {
         }
         // 登录成功，使用JWT生成token，返回token和redis中
         String token = jwtUtil.createJWT(user.getGuid());
-        redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
+        // redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
         return token;
     }
 

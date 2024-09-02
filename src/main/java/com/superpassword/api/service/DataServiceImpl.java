@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.jsonwebtoken.security.SignatureException;
+
 import java.time.LocalDateTime;
 
 @Service
@@ -21,7 +23,7 @@ public class DataServiceImpl implements DataService {
     private LoginService loginService;
 
     @Override
-    public InfoGroupDTO getByGuid(String token, String guid) {
+    public InfoGroupDTO getByGuid(String token, String guid) throws SignatureException {
         User owner = loginService.getUserInfoByToken(token);
         InfoGroup infoGroup = infoGroupRepository.findByGuid(guid).orElseThrow(DataNotFoundException::new);
         if (infoGroup.getOwner_id() != owner.getId())
@@ -30,7 +32,7 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public long addNewInfoGroup(String token, InfoGroupDTO infoGroupDTO) {
+    public long addNewInfoGroup(String token, InfoGroupDTO infoGroupDTO) throws SignatureException {
         User owner = loginService.getUserInfoByToken(token);
         infoGroupDTO.setCreateTime(LocalDateTime.now());
         infoGroupDTO.setUpdateTime(LocalDateTime.now());
