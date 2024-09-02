@@ -1,5 +1,6 @@
 package com.superpassword.api.service;
 
+import com.alibaba.fastjson.JSON;
 import com.superpassword.api.converter.UserConverter;
 import com.superpassword.api.dao.User;
 import com.superpassword.api.dao.UserRepository;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class LoginServiceImpl implements LoginService {
@@ -77,7 +79,7 @@ public class LoginServiceImpl implements LoginService {
         }
         // 登录成功，使用JWT生成token，返回token和redis中
         String token = jwtUtil.createJWT(user.getGuid());
-        // redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
         return token;
     }
 
@@ -85,21 +87,14 @@ public class LoginServiceImpl implements LoginService {
     public User getUserInfoByToken(String token) {
         Claims claims = jwtUtil.parseJWT(token);
         String guid = claims.getSubject();
-        User user = userRepository.findByGuid(guid).orElseThrow(RuntimeException::new);
+        String userJson = redisTemplate.opsForValue().get("TOKEN_" + token);
+        User user;
+        if (StringUtils.isBlank(userJson)) {
+            user = userRepository.findByGuid(guid).orElseThrow(RuntimeException::new);
+            redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
+        } else {
+            user = JSON.parseObject(userJson, User.class);
+        }
         return user;
-        // if (map == null){
-        //     return Result.fail(ErrorCode.NO_LOGIN.getCode(),ErrorCode.NO_LOGIN.getMsg());
-        // }
-        // String userJson = redisTemplate.opsForValue().get("TOKEN_" + token);
-        // if (StringUtils.isBlank(userJson)){
-        //     return Result.fail(ErrorCode.NO_LOGIN.getCode(),ErrorCode.NO_LOGIN.getMsg());
-        // }
-        // SysUser sysUser = JSON.parseObject(userJson, SysUser.class);
-        // LoginUserVo loginUserVo = new LoginUserVo();
-        // loginUserVo.setAccount(sysUser.getAccount());
-        // loginUserVo.setAvatar(sysUser.getAvatar());
-        // loginUserVo.setId(sysUser.getId());
-        // loginUserVo.setNickname(sysUser.getNickname());
-        // return Result.success(loginUserVo);
     }
 }
