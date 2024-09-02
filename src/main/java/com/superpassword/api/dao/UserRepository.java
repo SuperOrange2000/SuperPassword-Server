@@ -3,12 +3,11 @@ package com.superpassword.api.dao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    List<User> findByGuid(String guid);
+    Optional<User> findByGuid(String guid);
 
     Optional<User> findByAccount(String account);
 }

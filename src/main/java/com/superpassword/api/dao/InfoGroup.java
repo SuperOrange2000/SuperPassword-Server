@@ -3,7 +3,6 @@ package com.superpassword.api.dao;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "api_infogroup")
@@ -12,6 +11,8 @@ public class InfoGroup {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(name = "guid")
+    private String guid;
     @Column(name = "site")
     private byte[] site;
     @Column(name = "username")
@@ -23,6 +24,12 @@ public class InfoGroup {
     private LocalDateTime createTime;
     @Column(name = "update_time")
     private LocalDateTime updateTime;
+
+    @Column(name = "extra_info")
+    private byte[] extraInfo = null;
+
+    @Column(name = "owner_id")
+    private long owner_id;
 
     public long getId() {
         return id;
@@ -66,5 +73,29 @@ public class InfoGroup {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
+
+    public byte[] getExtraInfo() {
+        return extraInfo;
+    }
+
+    public void setExtraInfo(byte[] extraInfo) {
+        this.extraInfo = extraInfo;
+    }
+
+    public long getOwner_id() {
+        return owner_id;
+    }
+
+    public void setOwnerId(long owner_id) {
+        this.owner_id = owner_id;
     }
 }

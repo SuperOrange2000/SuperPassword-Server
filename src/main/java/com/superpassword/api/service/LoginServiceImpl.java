@@ -4,10 +4,11 @@ import com.superpassword.api.converters.UserConverter;
 import com.superpassword.api.dao.User;
 import com.superpassword.api.dao.UserRepository;
 import com.superpassword.api.dto.UserDTO;
+import com.superpassword.api.exceptions.AccountConflictException;
 import com.superpassword.api.exceptions.AccountOrPasswordException;
 import com.superpassword.api.exceptions.ArgumentNullException;
-import com.superpassword.api.exceptions.AccountConflictException;
 import com.superpassword.api.utils.JWTUtil;
+import io.jsonwebtoken.Claims;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,9 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    private JWTUtil jwtUtil;
 
     @Override
     @Transactional
@@ -51,7 +55,7 @@ public class LoginServiceImpl implements LoginService {
         userRepository.save(user);
 
         // 登录成功，使用JWT生成token，返回token和redis中
-        String token = JWTUtil.createJWT(user.getGuid());
+        String token = jwtUtil.createJWT(user.getGuid());
         // redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
         return token;
     }
@@ -72,8 +76,30 @@ public class LoginServiceImpl implements LoginService {
             throw new AccountOrPasswordException();
         }
         // 登录成功，使用JWT生成token，返回token和redis中
-        String token = JWTUtil.createJWT(user.getGuid());
+        String token = jwtUtil.createJWT(user.getGuid());
         // redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(user), 1, TimeUnit.DAYS);
         return token;
+    }
+
+    @Override
+    public User getUserInfoByToken(String token) {
+        Claims claims = jwtUtil.parseJWT(token);
+        String guid = claims.getSubject();
+        User user = userRepository.findByGuid(guid).orElseThrow(RuntimeException::new);
+        return user;
+        // if (map == null){
+        //     return Result.fail(ErrorCode.NO_LOGIN.getCode(),ErrorCode.NO_LOGIN.getMsg());
+        // }
+        // String userJson = redisTemplate.opsForValue().get("TOKEN_" + token);
+        // if (StringUtils.isBlank(userJson)){
+        //     return Result.fail(ErrorCode.NO_LOGIN.getCode(),ErrorCode.NO_LOGIN.getMsg());
+        // }
+        // SysUser sysUser = JSON.parseObject(userJson, SysUser.class);
+        // LoginUserVo loginUserVo = new LoginUserVo();
+        // loginUserVo.setAccount(sysUser.getAccount());
+        // loginUserVo.setAvatar(sysUser.getAvatar());
+        // loginUserVo.setId(sysUser.getId());
+        // loginUserVo.setNickname(sysUser.getNickname());
+        // return Result.success(loginUserVo);
     }
 }

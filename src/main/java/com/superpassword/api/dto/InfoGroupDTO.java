@@ -1,14 +1,14 @@
 package com.superpassword.api.dto;
 
-import jakarta.persistence.Column;
-
 import java.time.LocalDateTime;
 
 public class InfoGroupDTO {
 
+    private String guid;
     private byte[] site;
     private byte[] username;
     private byte[] password;
+    private byte[] extraInfo;
 
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
@@ -51,5 +51,21 @@ public class InfoGroupDTO {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
+
+    public byte[] getExtraInfo() {
+        return extraInfo;
+    }
+
+    public void setExtraInfo(byte[] extraInfo) {
+        this.extraInfo = extraInfo;
     }
 }

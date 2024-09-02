@@ -5,6 +5,7 @@ public enum ErrorCode {
     PARAMS_ERROR(10001, "参数有误"),
     ACCOUNT_PWD_NOT_EXIST(10002, "用户名或密码不存在"),
     ACCOUNT_CONFLICT(10003, "用户名重复"),
+    DATA_NOT_FOUND(20001, "访问数据不存在"),
     NO_PERMISSION(70001, "无访问权限"),
     SESSION_TIME_OUT(90001, "会话超时"),
     NO_LOGIN(90002, "未登录"),
