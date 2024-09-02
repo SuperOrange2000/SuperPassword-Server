@@ -29,7 +29,7 @@ public class InfoGroup {
     private byte[] extraInfo = null;
 
     @Column(name = "owner_id")
-    private long owner_id;
+    private long ownerId;
 
     public long getId() {
         return id;
@@ -91,11 +91,11 @@ public class InfoGroup {
         this.extraInfo = extraInfo;
     }
 
-    public long getOwner_id() {
-        return owner_id;
+    public long getOwnerId() {
+        return ownerId;
     }
 
     public void setOwnerId(long owner_id) {
-        this.owner_id = owner_id;
+        this.ownerId = owner_id;
     }
 }

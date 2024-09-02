@@ -8,4 +8,6 @@ import java.util.Optional;
 @Repository
 public interface InfoGroupRepository extends JpaRepository<InfoGroup, Long> {
     Optional<InfoGroup> findByGuid(String guid);
+
+    Optional<InfoGroup> findByOwnerIdAndGuid(long Id, String guid);
 }

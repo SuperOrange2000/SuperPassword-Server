@@ -1,14 +1,13 @@
 package com.superpassword.api.controller;
 
+import com.superpassword.api.dto.InfoGroupDTO;
 import com.superpassword.api.exception.DataNotFoundException;
+import com.superpassword.api.service.DataService;
 import com.superpassword.api.vo.ErrorCode;
 import com.superpassword.api.vo.Response;
-import com.superpassword.api.dto.InfoGroupDTO;
-import com.superpassword.api.service.DataService;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import io.jsonwebtoken.security.SignatureException;
 
 @RestController
 @RequestMapping("/info-group")
