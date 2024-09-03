@@ -1,5 +1,5 @@
 from django.http import JsonResponse, HttpRequest
-from .models import InfoGroup, UserEntityRelation
+from .models import InfoGroup, Tag
 from login.models import User, AccessToken
 from django.db.models import Q
 from core.decorators import require_http_methods, handle_exceptions
@@ -18,19 +18,18 @@ def add(request:HttpRequest):
         )
 
     info_group = InfoGroup.objects.create(
+        guid = request.POST["id"],
+        site = base64.b64decode(request.POST["site"]),
         username = base64.b64decode(request.POST["username"]),
         password = base64.b64decode(request.POST["password"]),
-        site = base64.b64decode(request.POST["site"]),
-        tags = request.POST.getlist("tags"),
-        # extra_info = base64.b64decode(request.POST["extra_info"]),
-        salt = base64.b64decode(request.POST["salt"]),
-    )
-
-    UserEntityRelation.objects.create(
-        personal_info_id = request.POST["id"],
-        info_group = info_group,
         owner = token.owner,
     )
+
+    for tag in request.POST.getlist("tags"):
+        Tag.objects.create(
+            content = base64.b64decode(tag),
+            info_group = info_group
+        )
     
     return JsonResponse(
         status=201,
@@ -46,15 +45,15 @@ def update(request:HttpRequest):
             data={"message" : "会话过期"}
         )
 
-    info_group = UserEntityRelation.objects.get(
-        personal_info_id = request.POST["id"],
+    info_group = InfoGroup.objects.get(
+        guid = request.POST["id"],
         owner = token.owner,
-    ).info_group
+    )
     
     info_group.username = base64.b64decode(request.POST["username"])
     info_group.password = base64.b64decode(request.POST["password"])
     info_group.site = base64.b64decode(request.POST["site"])
-    info_group.tags = request.POST.getlist("tags")
+    # info_group.tags = request.POST.getlist("tags")
     info_group.save()
 
     return JsonResponse(
@@ -74,19 +73,14 @@ def delete(request:HttpRequest):
     
     query = Q()
     if "ids" in request.POST:
-        if isinstance(request.POST["ids"], str):
-            query |= Q(personal_info_id=request.POST["ids"])
-        else:
-            for i in request.POST["ids"]:
-                query |= Q(personal_info_id=i)
+        for i in request.POST.getlist("ids"):
+            query |= Q(guid=i)
+    else:
+        return JsonResponse(
+                status=422,
+                data={"message":f"缺少参数id"}
+            )
 
-    info_group_ids = UserEntityRelation.objects.filter(
-        owner = token.owner,
-    ).filter(query).values_list("info_group", flat=True)
-
-    query = Q()
-    for i in info_group_ids:
-        query |= Q(id=i)
     InfoGroup.objects.filter(query).delete()
 
     return JsonResponse(
@@ -107,24 +101,21 @@ def get(request:HttpRequest):
     query = Q()
     if "ids" in request.POST:
         for i in request.POST["ids"]:
-            query |= Q(personal_info_id=i)
-    info_group_relations = UserEntityRelation.objects.filter(
-        owner = token.owner,
-    ).filter(query)
+            query |= Q(guid = i, owner = token.owner)
+    info_groups = InfoGroup.objects.filter(query)
     return JsonResponse(
         status=200,
         data={
             "message" : "ok",
             "content" : [{
-                "id" : x.personal_info_id,
-                "username" : base64.b64encode(x.info_group.username).decode(),
-                "password" : base64.b64encode(x.info_group.password).decode(),
-                "site" : base64.b64encode(x.info_group.site).decode(),
-                "tags" : x.info_group.tags,
-                "salt" : base64.b64encode(x.info_group.salt).decode(),
-                "update-time" : x.info_group.update_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "create-time" : x.info_group.create_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            } for x in info_group_relations ]
+                "id" : x.guid,
+                "username" : base64.b64encode(x.username).decode(),
+                "password" : base64.b64encode(x.password).decode(),
+                "site" : base64.b64encode(x.site).decode(),
+                "tags" : [base64.b64encode(tag.content).decode() for tag in Tag.objects.filter(info_group = x)],
+                # "update-time" : x.update_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                # "create-time" : x.create_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            } for x in info_groups ]
     })
 
 @require_http_methods(["POST"])

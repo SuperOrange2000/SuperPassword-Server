@@ -10,14 +10,20 @@ from typing import Any, ClassVar
 
 class User(models.Model):
     id = models.BigAutoField(primary_key=True)
-    nickname = models.CharField(max_length=32, default=partial(random_string_func, 8))
-    username = models.CharField(max_length=32, default=partial(random_string_func, 8))
-    check_code = models.BinaryField(max_length=128)
-    iv = models.BinaryField(max_length=16, default=partial(os.urandom, 16))
+    guid = models.CharField(max_length=36)
+
+    nickname = models.CharField(max_length=32, default="orange", blank=True)
+    password = models.BinaryField(max_length=32)
+    account = models.CharField(max_length=32)
     salt = models.CharField(max_length=64, default=random_string_func)
-    profile_pic = models.ImageField(upload_to="profile_pic", storage=HashStorage(), default="profile_pic/default.png")
+    profile_pic = models.ImageField(upload_to="profile_pic", storage=HashStorage(), default="profile_pic/default.png", blank=True)
     update_time = models.DateTimeField(auto_now=True)
     create_time = models.DateTimeField(auto_now_add=True, editable=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["guid"])
+        ]
 
 class TokenManager(models.Manager):
     timeout = 300

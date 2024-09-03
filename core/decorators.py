@@ -25,7 +25,7 @@ def handle_exceptions(func):
             print(f"缺少参数{e}")
             return JsonResponse(
                 status=422,
-                data={"message":f"缺少参数{e}"}
+                data={"message":f"缺少参数 {e}"}
             )
         except Exception:
             traceback.print_exc()
